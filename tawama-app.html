@@ -617,15 +617,15 @@ async function dbGet(phone){try{const r=await fetch(`${SUPA_URL}/rest/v1/student
 async function dbUpsert(data){
   try{
     if(data.phone){
-      // try PATCH first (update existing)
       const ph=encodeURIComponent(data.phone);
-      const patchHeaders={...H,'Prefer':'return=minimal'};
+      const patchHeaders={...H,'Prefer':'return=representation','Content-Type':'application/json'};
       const res=await fetch(`${SUPA_URL}/rest/v1/students?phone=eq.${ph}`,{method:'PATCH',headers:patchHeaders,body:JSON.stringify(data)});
-      if(res.ok) return;
+      const rows=await res.json();
+      if(Array.isArray(rows)&&rows.length>0) return; // updated successfully
     }
-    // fallback: POST (insert new)
+    // insert new row
     await fetch(`${SUPA_URL}/rest/v1/students`,{method:'POST',headers:H,body:JSON.stringify(data)});
-  }catch{toast('خطأ في الاتصال');}
+  }catch(e){toast('خطأ في الاتصال');}
 }
 async function dbAll(){try{const r=await fetch(`${SUPA_URL}/rest/v1/students?select=id,name,phone,grade,qudra,tahsili,thanawi,exam_type,exam_date,personality,created_at&order=created_at.desc`,{headers:H});return await r.json();}catch{return[];}}
 
@@ -1307,9 +1307,19 @@ async function initSession(){
   if(!ex){localStorage.removeItem('tawama_session');return;}
   user.name=ex.name;user.phone=ex.phone;user.grade=ex.grade||'';
   user.qudra=ex.qudra;user.tahsili=ex.tahsili;user.thanawi=ex.thanawi;
-  user.examType=ex.exam_type||null;user.examDate=ex.exam_date||null;
+  // Supabase is source of truth for exam
+  user.examType=ex.exam_type||null;
+  user.examDate=ex.exam_date||null;
   user.personality=ex.personality||null;user.quizDone=!!ex.personality;
-  if(!user.examDate){const loc=localStorage.getItem('exam_'+user.phone);if(loc){try{const lj=JSON.parse(loc);user.examType=lj.examType;user.examDate=lj.examDate;}catch{}}}
+  // fallback to localStorage only if Supabase has no exam, then sync it back
+  if(!user.examDate){
+    const loc=localStorage.getItem('exam_'+savedPhone);
+    if(loc){try{
+      const lj=JSON.parse(loc);
+      user.examType=lj.examType;user.examDate=lj.examDate;
+      dbUpsert({phone:savedPhone,exam_type:lj.examType,exam_date:lj.examDate});
+    }catch{}}
+  }
   launchApp();
   // silent auto-refresh every 20 seconds
   setInterval(async()=>{
@@ -1321,10 +1331,11 @@ async function initSession(){
     if((fresh.personality||null)!==(user.personality)){user.personality=fresh.personality||null;user.quizDone=!!fresh.personality;changed=true;}
     if(String(fresh.qudra)!==String(user.qudra)){user.qudra=fresh.qudra;changed=true;}
     if(String(fresh.tahsili)!==String(user.tahsili)){user.tahsili=fresh.tahsili;changed=true;}
+    if((fresh.exam_type||null)!==user.examType){user.examType=fresh.exam_type||null;user.examDate=fresh.exam_date||null;changed=true;}
     if(changed){
       updateHeroScores();buildAlerts();
       initCalcField();calcScore();
-      renderQuizSection();
+      renderQuizSection();renderExamCard();
       toast('تم تحديث بياناتك تلقائياً ✓');
     }
   },20000);
