@@ -613,8 +613,20 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
 const SUPA_URL='https://pnqceskbldkhldcqccgt.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucWNlc2tibGRraGxkY3FjY2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MjMwNjYsImV4cCI6MjA5NjA5OTA2Nn0.btaxSiadGfbiCx56UwWNSrTkUskdzNzyO8r-DHpDpdw';
 const H={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'};
-async function dbGet(phone){try{const r=await fetch(`${SUPA_URL}/rest/v1/students?phone=eq.${encodeURIComponent(phone)}&select=*`,{headers:H});const d=await r.json();return d[0]||null;}catch{return null;}}
-async function dbUpsert(data){try{await fetch(`${SUPA_URL}/rest/v1/students`,{method:'POST',headers:H,body:JSON.stringify(data)});}catch{toast('خطأ في الاتصال');}}
+async function dbGet(phone){try{const r=await fetch(`${SUPA_URL}/rest/v1/students?phone=eq.${encodeURIComponent(phone)}&select=id,name,phone,grade,qudra,tahsili,thanawi,exam_type,exam_date,personality`,{headers:H});const d=await r.json();return d[0]||null;}catch{return null;}}
+async function dbUpsert(data){
+  try{
+    if(data.phone){
+      // try PATCH first (update existing)
+      const ph=encodeURIComponent(data.phone);
+      const patchHeaders={...H,'Prefer':'return=minimal'};
+      const res=await fetch(`${SUPA_URL}/rest/v1/students?phone=eq.${ph}`,{method:'PATCH',headers:patchHeaders,body:JSON.stringify(data)});
+      if(res.ok) return;
+    }
+    // fallback: POST (insert new)
+    await fetch(`${SUPA_URL}/rest/v1/students`,{method:'POST',headers:H,body:JSON.stringify(data)});
+  }catch{toast('خطأ في الاتصال');}
+}
 async function dbAll(){try{const r=await fetch(`${SUPA_URL}/rest/v1/students?select=id,name,phone,grade,qudra,tahsili,thanawi,exam_type,exam_date,personality,created_at&order=created_at.desc`,{headers:H});return await r.json();}catch{return[];}}
 
 // ══════ DATA ══════
@@ -1163,6 +1175,10 @@ async function loadAdminMsgsCount(){
   try{const r=await fetch(`${SUPA_URL}/rest/v1/messages?select=id`,{headers:H});const d=await r.json();const cnt=document.getElementById('admin-msgs-count');if(cnt&&d.length)cnt.textContent=d.length;}catch{}
 }
 function adminLogout(){document.getElementById('s-admin').style.display='none';document.getElementById('s-admin').classList.remove('active');goTo('s-splash');}
+function persBlock(p){
+  if(p) return '<div style="border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:13px;background:#ECEAFF"><span style="font-weight:700;color:#5B4FBE">نوع الشخصية: </span><span style="color:#1A1A2E">'+p+'</span></div>';
+  return '<div style="border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12px;color:#9090A8;background:#F7F6F3">لم تكمل اختبار الميول بعد</div>';
+}
 async function renderAdminStudents(filter){
   document.getElementById('admin-students-list').innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">جاري التحميل...</div>`;
   students=await dbAll();
@@ -1190,10 +1206,7 @@ async function renderAdminStudents(filter){
         </div>
       </div>
       <!-- نتيجة اختبار الميول -->
-      <div id="pers-${s.phone}" style="border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:13px;background:${s.personality ? '#ECEAFF' : '#F7F6F3'}">
-        <span style="font-weight:700;color:#5B4FBE">نوع الشخصية: </span>
-        <span style="color:${s.personality ? '#1A1A2E' : '#9090A8'}">${s.personality ? s.personality : 'لم تكمل اختبار الميول بعد'}</span>
-      </div>
+      ${persBlock(s.personality)}
       <!-- الموزونة التقديرية -->
       <div class="wazn-result" id="wr-${s.phone}" style="${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?'display:block':'display:none'}">
         <div class="wazn-val" id="wv-${s.phone}">${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?((s.thanawi*.3+s.qudra*.3+s.tahsili*.4).toFixed(1))+'%':''}</div>
@@ -1222,9 +1235,9 @@ async function saveStudent(ph){
   const btn=event.target;btn.textContent='جاري الحفظ...';btn.disabled=true;
   const s=+document.getElementById(`s-${ph}`)?.value||null;
   await dbUpsert({phone:ph,thanawi:s});
-  btn.textContent='تم ✓';btn.style.background='var(--green)';
-  setTimeout(()=>{btn.textContent='حفظ البيانات';btn.style.background='';btn.disabled=false;},2000);
-  toast('تم حفظ البيانات ✓');
+  toast('تم حفظ النسبة ✓');
+  // reload to reflect changes
+  await renderAdminStudents();
 }
 function filterStudents(v){renderAdminStudents(v);}
 
@@ -1285,6 +1298,39 @@ function toHijri(date){
   return`${dy} ${hm[(mo-1)%12]} ${yr}هـ`;
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ══════ SESSION RESTORE + AUTO REFRESH ══════
+async function initSession(){
+  const savedPhone=localStorage.getItem('tawama_session');
+  if(!savedPhone) return;
+  const ex=await dbGet(savedPhone);
+  if(!ex){localStorage.removeItem('tawama_session');return;}
+  user.name=ex.name;user.phone=ex.phone;user.grade=ex.grade||'';
+  user.qudra=ex.qudra;user.tahsili=ex.tahsili;user.thanawi=ex.thanawi;
+  user.examType=ex.exam_type||null;user.examDate=ex.exam_date||null;
+  user.personality=ex.personality||null;user.quizDone=!!ex.personality;
+  if(!user.examDate){const loc=localStorage.getItem('exam_'+user.phone);if(loc){try{const lj=JSON.parse(loc);user.examType=lj.examType;user.examDate=lj.examDate;}catch{}}}
+  launchApp();
+  // silent auto-refresh every 20 seconds
+  setInterval(async()=>{
+    if(!user.phone) return;
+    const fresh=await dbGet(user.phone);
+    if(!fresh) return;
+    let changed=false;
+    if(String(fresh.thanawi)!==String(user.thanawi)){user.thanawi=fresh.thanawi;changed=true;}
+    if((fresh.personality||null)!==(user.personality)){user.personality=fresh.personality||null;user.quizDone=!!fresh.personality;changed=true;}
+    if(String(fresh.qudra)!==String(user.qudra)){user.qudra=fresh.qudra;changed=true;}
+    if(String(fresh.tahsili)!==String(user.tahsili)){user.tahsili=fresh.tahsili;changed=true;}
+    if(changed){
+      updateHeroScores();buildAlerts();
+      initCalcField();calcScore();
+      renderQuizSection();
+      toast('تم تحديث بياناتك تلقائياً ✓');
+    }
+  },20000);
+}
+initSession();
+
 </script>
 
 <!-- CONTACT ADMIN MODAL -->
