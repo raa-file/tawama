@@ -37,6 +37,8 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
 .btn-splash:hover{transform:translateY(-2px)}
 .btn-admin-entry{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);box-shadow:none;margin-top:12px;font-size:14px}
 
+/* LOGIN */
+#s-login{background:var(--card);overflow-y:auto;align-items:center;justify-content:center;padding:48px 28px;position:relative}
 /* REGISTER */
 #s-register{background:var(--card);overflow-y:auto;align-items:center;padding:48px 28px;position:relative}
 .back-btn{position:absolute;top:20px;right:20px;background:var(--primary-soft);border:none;border-radius:10px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary)}
@@ -285,6 +287,17 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
 .overlay.open{display:block}
 
 /* MISC */
+.contact-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.contact-modal-overlay.open{display:flex}
+.contact-modal{background:#fff;border-radius:22px 22px 0 0;padding:24px 22px 36px;width:100%;max-width:480px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.contact-modal-title{font-size:17px;font-weight:900;margin-bottom:5px}
+.contact-modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.contact-textarea{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:11px;font-family:'Cairo',sans-serif;font-size:14px;color:var(--ink);resize:none;outline:none;min-height:100px;transition:border-color .2s}
+.contact-textarea:focus{border-color:var(--primary)}
+.contact-modal-btns{display:flex;gap:10px;margin-top:14px}
+.btn-cancel-modal{flex:1;padding:12px;border-radius:11px;background:var(--bg);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer}
+.btn-send-modal{flex:2;padding:12px;border-radius:11px;background:var(--primary);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer}
 .empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
 .empty-icon{width:60px;height:60px;border-radius:16px;background:var(--bg);margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:11px;font-size:13px;font-weight:600;z-index:400;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
@@ -310,7 +323,8 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
     <span class="splash-pill">حاسبة الموزونة</span>
     <span class="splash-pill">التخصصات</span>
   </div>
-  <button class="btn-splash" onclick="goTo('s-register')">ابدئي رحلتك</button>
+  <button class="btn-splash" onclick="goTo('s-login')">تسجيل الدخول</button>
+  <button class="btn-splash" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);box-shadow:none;margin-top:10px" onclick="goTo('s-register')">إنشاء حساب جديد</button>
   <button class="btn-splash btn-admin-entry" onclick="goTo('s-admin-login')">دخول الإدارة</button>
 </div>
 
@@ -325,6 +339,25 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
     <input class="admin-input" type="password" placeholder="كلمة المرور" id="admin-pass">
     <button class="btn-admin-login" onclick="adminLogin()">دخول</button>
   </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="s-login" style="position:relative">
+  <button class="back-btn" onclick="goTo('s-splash')"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="#5B4FBE" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <div class="reg-head">
+    <div style="width:62px;height:62px;border-radius:18px;background:var(--primary-soft);margin:0 auto 13px;display:flex;align-items:center;justify-content:center">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect x="5" y="10" width="20" height="16" rx="3" fill="#5B4FBE"/><path d="M10 10V8a5 5 0 0110 0v2" stroke="#5B4FBE" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="18" r="2.5" fill="white"/></svg>
+    </div>
+    <h2>تسجيل الدخول</h2>
+    <p>أدخلي رقم جوالك للدخول لحسابك</p>
+  </div>
+  <div class="form-group">
+    <label class="form-label">رقم الجوال</label>
+    <input class="form-input" id="login-phone" type="tel" placeholder="05XXXXXXXX" maxlength="10" oninput="checkLogin()">
+  </div>
+  <div id="login-error" style="display:none;color:var(--rose);font-size:13px;font-weight:600;text-align:center;margin-bottom:10px;padding:10px;background:var(--rose-soft);border-radius:9px">رقم الجوال غير مسجّل</div>
+  <button class="btn-primary" id="login-btn" disabled onclick="loginUser()">دخول</button>
+  <div style="margin-top:18px;font-size:13px;color:var(--muted);text-align:center">ليس لديكِ حساب؟ <span style="color:var(--primary);font-weight:700;cursor:pointer" onclick="goTo('s-register')">سجّلي الآن</span></div>
 </div>
 
 <!-- REGISTER -->
@@ -422,62 +455,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
           <div class="shortcut-label">التخصصات</div>
         </div>
       </div>
-
-      <div class="divider"></div>
-
-      <!-- QUIZ SECTION -->
-      <div id="quiz-section" style="scroll-margin-top:20px;margin-bottom:8px">
-        <div class="section-title">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#5B4FBE" stroke-width="1.5"/><path d="M6.5 7c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5c0 1-.6 1.9-1.6 2.3V12" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="14" r=".9" fill="#5B4FBE"/></svg>
-          اختبار الميول
-        </div>
-        <div id="quiz-home-wrap"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- CALC SECTION -->
-      <div id="calc-section" style="scroll-margin-top:20px;margin-bottom:8px">
-        <div class="section-title">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2" stroke="#5B4FBE" stroke-width="1.5"/><path d="M6 9h6M6 6h3M6 12h4" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/></svg>
-          حاسبة الموزونة
-        </div>
-        <div class="calc-card">
-          <div class="calc-field">
-            <div class="calc-label-row"><span class="calc-label">اختبار القدرات</span><span class="calc-val" id="v-q">0</span></div>
-            <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-q" oninput="calcScore()">
-            <div class="slider-ends"><span>0</span><span>100</span></div>
-          </div>
-          <div class="calc-field">
-            <div class="calc-label-row"><span class="calc-label">اختبار التحصيلي</span><span class="calc-val" id="v-t">0</span></div>
-            <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-t" oninput="calcScore()">
-            <div class="slider-ends"><span>0</span><span>100</span></div>
-          </div>
-          <div id="thanawi-field">
-            <div class="calc-label-row"><span class="calc-label">نسبة الثانوية <span style="font-size:11px;color:var(--muted)">(تُدرجها الإدارة)</span></span><span id="v-s" style="font-size:13px;color:var(--muted)">—</span></div>
-            <div id="thanawi-info" style="padding:11px;background:var(--bg);border-radius:9px;font-size:13px;color:var(--muted);text-align:center">لم تُدرج نسبتك بعد</div>
-          </div>
-        </div>
-        <div class="result-box">
-          <div class="result-score" id="calc-score">—</div>
-          <div class="result-label">موزونتك التقديرية</div>
-          <div class="result-tier" id="calc-tier">أدخلي درجات القدرات والتحصيلي</div>
-        </div>
-        <div class="section-title">جامعات تناسبك</div>
-        <div class="uni-grid" id="uni-cards"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- MAJORS SECTION -->
-      <div id="majors-section" style="scroll-margin-top:20px;margin-bottom:8px">
-        <div class="section-title">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 14V5a2 2 0 012-2h8a2 2 0 012 2v9" stroke="#5B4FBE" stroke-width="1.5"/><path d="M3 14h12M7 7h4M7 10h2" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/></svg>
-          التخصصات
-        </div>
-        <div class="major-filter-row" id="major-filters"></div>
-        <div id="majors-list"></div>
-      </div>
     </div>
 
     <!-- PROFILE -->
@@ -542,8 +519,18 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
       <div class="admin-stat"><div class="admin-stat-val" id="admin-total">0</div><div class="admin-stat-label">إجمالي الطلاب</div></div>
       <div class="admin-stat"><div class="admin-stat-val" id="admin-complete">0</div><div class="admin-stat-label">مكتملة النسب</div></div>
     </div>
+    <!-- Admin tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="atab-students" onclick="switchAdminTab('students')" style="flex:1;padding:10px;border-radius:10px;background:var(--primary);color:#fff;border:none;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">الطلاب</button>
+      <button id="atab-msgs" onclick="switchAdminTab('msgs')" style="flex:1;padding:10px;border-radius:10px;background:var(--bg);color:var(--muted);border:none;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">رسائل الطلاب <span id="admin-msgs-count" style="background:var(--accent);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;margin-right:4px"></span></button>
+    </div>
+    <div id="admin-students-section">
     <input class="admin-search" type="text" placeholder="ابحث باسم أو جوال..." id="admin-search-inp" oninput="filterStudents(this.value)">
     <div id="admin-students-list"></div>
+    </div>
+    <div id="admin-msgs-section" style="display:none">
+      <div id="admin-msgs-list"></div>
+    </div>
   </div>
 </div>
 
@@ -644,6 +631,53 @@ function jumpTo(id){
   setTimeout(()=>{const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},120);
 }
 
+
+// ══════ LOGIN ══════
+function checkLogin(){const p=document.getElementById('login-phone').value.trim();document.getElementById('login-btn').disabled=p.length<10;document.getElementById('login-error').style.display='none';}
+async function loginUser(){
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='جاري التحقق...';
+  const phone=document.getElementById('login-phone').value.trim();
+  const ex=await dbGet(phone);
+  if(!ex){
+    document.getElementById('login-error').style.display='block';
+    btn.disabled=false;btn.textContent='دخول';return;
+  }
+  user.name=ex.name;user.phone=ex.phone;user.grade=ex.grade;
+  user.qudra=ex.qudra;user.tahsili=ex.tahsili;user.thanawi=ex.thanawi;
+  user.examType=ex.exam_type||null;user.examDate=ex.exam_date||null;
+  user.personality=ex.personality||null;user.quizDone=!!ex.personality;
+  launchApp();
+}
+
+// ══════ CONTACT ADMIN ══════
+function openContactAdmin(){
+  document.getElementById('contact-sender-name').textContent=user.name||'—';
+  document.getElementById('contact-sender-phone').textContent=user.phone||'—';
+  document.getElementById('contact-msg').value='';
+  document.getElementById('contact-modal-overlay').classList.add('open');
+}
+function closeContactAdmin(e){
+  if(!e||e.target===document.getElementById('contact-modal-overlay'))
+    document.getElementById('contact-modal-overlay').classList.remove('open');
+}
+async function sendContactMsg(){
+  const msg=document.getElementById('contact-msg').value.trim();
+  if(!msg){toast('اكتبي رسالتك أولاً');return;}
+  const btn=document.querySelector('.btn-send-modal');
+  btn.textContent='جاري الإرسال...';btn.disabled=true;
+  // Save message to Supabase messages table
+  try{
+    await fetch(`${SUPA_URL}/rest/v1/messages`,{
+      method:'POST',headers:H,
+      body:JSON.stringify({phone:user.phone,name:user.name,grade:user.grade,message:msg,created_at:new Date().toISOString()})
+    });
+  }catch(e){}
+  document.getElementById('contact-modal-overlay').classList.remove('open');
+  btn.textContent='إرسال الرسالة';btn.disabled=false;
+  toast('تم إرسال رسالتك للإدارة ✓');
+}
+
 // ══════ REGISTER ══════
 function selectGrade(el,g){document.querySelectorAll('.grade-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');selectedGrade=g;checkReg();}
 function checkReg(){const n=document.getElementById('reg-name').value.trim(),p=document.getElementById('reg-phone').value.trim();document.getElementById('reg-btn').disabled=!(n&&p.length>=10&&selectedGrade);}
@@ -728,7 +762,7 @@ function buildAlerts(){
     if(close.length)html+=`<div class="alert-card warn"><div class="alert-icon-wrap" style="background:var(--amber-soft)"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3L2 19h18z" stroke="#C97B2A" stroke-width="1.7" stroke-linejoin="round"/><path d="M11 9v5" stroke="#C97B2A" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="16.5" r="1" fill="#C97B2A"/></svg></div><div class="alert-text"><div class="alert-title">أنتِ قريبة من هذه التخصصات</div><div class="alert-sub">${close.slice(0,2).join(' — ')}</div></div><span class="badge badge-amber">قريب</span></div>`;
   }
   // calc reminder if no thanawi
-  if(user.thanawi==null)html+=`<div class="alert-card info" onclick="jumpTo('calc-section')"><div class="alert-icon-wrap" style="background:var(--primary-soft)"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="4" width="14" height="14" rx="3" stroke="#5B4FBE" stroke-width="1.7"/><path d="M8 11h6M11 8v6" stroke="#5B4FBE" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="alert-text"><div class="alert-title">تواصلي مع الإدارة لإدراج نسبة الثانوية</div><div class="alert-sub">ستتمكنين من حساب موزونتك الكاملة</div></div></div>`;
+  if(user.thanawi==null)html+=`<div class="alert-card info" onclick="openContactAdmin()" style="cursor:pointer"><div class="alert-icon-wrap" style="background:var(--primary-soft)"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="4" width="14" height="14" rx="3" stroke="#5B4FBE" stroke-width="1.7"/><path d="M8 11h6M11 8v6" stroke="#5B4FBE" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="alert-text"><div class="alert-title">نسبة الثانوية لم تُدرج بعد</div><div class="alert-sub">اضغطي هنا لإرسال تذكير للإدارة</div></div><span class="badge badge-purple">راسلي</span></div>`;
   document.getElementById('score-alert-box').innerHTML=html;
   // update notif dot
   const notifDot=document.getElementById('notif-dot');
@@ -1013,8 +1047,11 @@ function adminLogin(){
   if(document.getElementById('admin-user').value==='admin'&&document.getElementById('admin-pass').value==='1234'){
     document.querySelectorAll('.screen').forEach(s=>{s.style.display='none';s.classList.remove('active')});
     const adm=document.getElementById('s-admin');adm.style.display='flex';adm.classList.add('active');
-    renderAdminStudents();
+    renderAdminStudents();loadAdminMsgsCount();
   } else toast('بيانات خاطئة');
+}
+async function loadAdminMsgsCount(){
+  try{const r=await fetch(`${SUPA_URL}/rest/v1/messages?select=id`,{headers:H});const d=await r.json();const cnt=document.getElementById('admin-msgs-count');if(cnt&&d.length)cnt.textContent=d.length;}catch{}
 }
 function adminLogout(){document.getElementById('s-admin').style.display='none';document.getElementById('s-admin').classList.remove('active');goTo('s-splash');}
 async function renderAdminStudents(filter){
@@ -1033,34 +1070,95 @@ async function renderAdminStudents(filter){
           <div class="s-name">${s.name||'—'}</div>
           <div class="s-meta">${s.grade||'—'} · ${s.phone||'—'}${s.exam_date?' · '+(s.exam_type||'')+' '+fmtDateShort(s.exam_date):''}</div>
         </div>
-        ${s.thanawi!=null?`<span class="badge badge-green">مكتمل</span>`:`<span class="badge badge-amber">ناقص</span>`}
+        ${s.thanawi!=null?`<span class="badge badge-green">ثانوية: ${s.thanawi}%</span>`:`<span class="badge badge-amber">بدون نسبة</span>`}
       </div>
-      <div class="score-input-row">
-        <div class="score-inp-wrap"><div class="label">القدرات</div><input class="score-inp" type="number" min="0" max="100" value="${s.qudra??''}" placeholder="—" id="q-${s.phone}" oninput="calcW('${s.phone}')"></div>
-        <div class="score-inp-wrap"><div class="label">التحصيلي</div><input class="score-inp" type="number" min="0" max="100" value="${s.tahsili??''}" placeholder="—" id="t-${s.phone}" oninput="calcW('${s.phone}')"></div>
-        <div class="score-inp-wrap"><div class="label">الثانوية</div><input class="score-inp" type="number" min="0" max="100" value="${s.thanawi??''}" placeholder="—" id="s-${s.phone}" oninput="calcW('${s.phone}')"></div>
+      <!-- نسبة الثانوية فقط -->
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:7px">نسبة الثانوية %</div>
+        <div style="display:flex;gap:9px;align-items:center">
+          <input class="score-inp" style="max-width:100px;font-size:16px" type="number" min="0" max="100" value="${s.thanawi??''}" placeholder="—" id="s-${s.phone}" oninput="calcW('${s.phone}')">
+          <button class="save-scores-btn" style="flex:1" onclick="saveStudent('${s.phone}')">حفظ</button>
+        </div>
       </div>
-      <div class="wazn-result" id="wr-${s.phone}"><div class="wazn-val" id="wv-${s.phone}"></div><div style="font-size:12px;color:var(--muted);margin-top:2px">الموزونة التقديرية</div></div>
-      <button class="save-scores-btn" onclick="saveStudent('${s.phone}')">حفظ البيانات</button>
+      <!-- نتيجة اختبار الميول -->
+      ${s.personality ? `<div style="background:var(--primary-soft);border-radius:10px;padding:10px 13px;margin-bottom:10px;font-size:13px"><span style="font-weight:700;color:var(--primary)">نوع الشخصية:</span> ${s.personality}</div>` : '<div style="background:var(--bg);border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12px;color:var(--muted)">لم تكمل اختبار الميول بعد</div>'}
+      <!-- الموزونة التقديرية -->
+      <div class="wazn-result" id="wr-${s.phone}" style="${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?'display:block':'display:none'}">
+        <div class="wazn-val" id="wv-${s.phone}">${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?((s.thanawi*.3+s.qudra*.3+s.tahsili*.4).toFixed(1))+'%':''}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">الموزونة التقديرية</div>
+      </div>
     </div>`).join('');
 }
 function calcW(ph){
-  const q=+document.getElementById(`q-${ph}`)?.value||0;
-  const t=+document.getElementById(`t-${ph}`)?.value||0;
   const s=+document.getElementById(`s-${ph}`)?.value||0;
-  if(q&&t&&s){const w=((s*.3)+(q*.3)+(t*.4)).toFixed(1);const wr=document.getElementById(`wr-${ph}`);const wv=document.getElementById(`wv-${ph}`);if(wr)wr.style.display='block';if(wv)wv.textContent=w+'%';}
+  // find student qudra/tahsili from loaded students array
+  const st=students.find(x=>x.phone===ph);
+  const q=st?.qudra||0, t=st?.tahsili||0;
+  const wr=document.getElementById(`wr-${ph}`);
+  const wv=document.getElementById(`wv-${ph}`);
+  if(s&&q&&t){
+    const w=((s*.3)+(q*.3)+(t*.4)).toFixed(1);
+    if(wr)wr.style.display='block';
+    if(wv)wv.textContent=w+'%';
+  } else if(s&&(!q||!t)){
+    if(wr)wr.style.display='block';
+    if(wv)wv.textContent='أدخلت الثانوية لكن القدرات/التحصيلي غير مسجّلين للطالبة بعد';
+    if(wv)wv.style.fontSize='11px';
+  }
 }
 async function saveStudent(ph){
   const btn=event.target;btn.textContent='جاري الحفظ...';btn.disabled=true;
-  const q=+document.getElementById(`q-${ph}`)?.value||null;
-  const t=+document.getElementById(`t-${ph}`)?.value||null;
   const s=+document.getElementById(`s-${ph}`)?.value||null;
-  await dbUpsert({phone:ph,qudra:q,tahsili:t,thanawi:s});
+  await dbUpsert({phone:ph,thanawi:s});
   btn.textContent='تم ✓';btn.style.background='var(--green)';
   setTimeout(()=>{btn.textContent='حفظ البيانات';btn.style.background='';btn.disabled=false;},2000);
   toast('تم حفظ البيانات ✓');
 }
 function filterStudents(v){renderAdminStudents(v);}
+
+// ══════ ADMIN TABS ══════
+function switchAdminTab(tab){
+  const st=document.getElementById('admin-students-section');
+  const mt=document.getElementById('admin-msgs-section');
+  const bt=document.getElementById('atab-students');
+  const bm=document.getElementById('atab-msgs');
+  if(tab==='students'){
+    st.style.display='block';mt.style.display='none';
+    bt.style.background='var(--primary)';bt.style.color='#fff';
+    bm.style.background='var(--bg)';bm.style.color='var(--muted)';
+  } else {
+    st.style.display='none';mt.style.display='block';
+    bm.style.background='var(--primary)';bm.style.color='#fff';
+    bt.style.background='var(--bg)';bt.style.color='var(--muted)';
+    loadAdminMsgs();
+  }
+}
+async function loadAdminMsgs(){
+  const el=document.getElementById('admin-msgs-list');
+  el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)">جاري التحميل...</div>`;
+  try{
+    const r=await fetch(`${SUPA_URL}/rest/v1/messages?select=*&order=created_at.desc`,{headers:H});
+    const msgs=await r.json();
+    const cnt=document.getElementById('admin-msgs-count');
+    if(cnt)cnt.textContent=msgs.length||'';
+    if(!msgs.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="6" width="20" height="16" rx="3" stroke="#9090A8" stroke-width="1.6"/><path d="M4 10l10 7 10-7" stroke="#9090A8" stroke-width="1.6" stroke-linecap="round"/></svg></div><p>لا توجد رسائل بعد</p></div>`;return;}
+    el.innerHTML=msgs.map(m=>{
+      const d=new Date(m.created_at);
+      const dateStr=d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+      return`<div style="background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:11px;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:14px;font-weight:800">${m.name||'—'}</div>
+            <div style="font-size:12px;color:var(--muted)">${m.grade||'—'} · ${m.phone||'—'}</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">${dateStr}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:9px;padding:12px;font-size:13px;color:var(--ink2);line-height:1.6">${m.message||'—'}</div>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML=`<div class="empty-state"><p>خطأ في تحميل الرسائل</p></div>`;}
+}
+
 
 // ══════ HELPERS ══════
 function fmtDate(d){const m=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];return d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear();}
@@ -1076,5 +1174,24 @@ function toHijri(date){
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
 </script>
+
+<!-- CONTACT ADMIN MODAL -->
+<div class="contact-modal-overlay" id="contact-modal-overlay" onclick="closeContactAdmin(event)">
+  <div class="contact-modal">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 18px"></div>
+    <div class="contact-modal-title">تواصلي مع الإدارة</div>
+    <div class="contact-modal-sub">اكتبي رسالتك وستصل للإدارة مباشرة لإدراج نسبة ثانويتك</div>
+    <div style="background:var(--primary-soft);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--ink2)">
+      <strong>المرسلة:</strong> <span id="contact-sender-name"></span><br>
+      <strong>الجوال:</strong> <span id="contact-sender-phone"></span>
+    </div>
+    <textarea class="contact-textarea" id="contact-msg" placeholder="مثال: السلام عليكم، أرجو إدراج نسبة ثانويتي..."></textarea>
+    <div class="contact-modal-btns">
+      <button class="btn-cancel-modal" onclick="closeContactAdmin()">إلغاء</button>
+      <button class="btn-send-modal" onclick="sendContactMsg()">إرسال الرسالة</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
