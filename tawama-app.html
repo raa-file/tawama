@@ -455,6 +455,63 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
           <div class="shortcut-label">التخصصات</div>
         </div>
       </div>
+
+      <div class="divider"></div>
+
+      <!-- QUIZ SECTION -->
+      <div id="quiz-section" style="scroll-margin-top:20px;margin-bottom:8px">
+        <div class="section-title">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#5B4FBE" stroke-width="1.5"/><path d="M6.5 7c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5c0 1-.6 1.9-1.6 2.3V12" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="14" r=".9" fill="#5B4FBE"/></svg>
+          اختبار الميول
+        </div>
+        <div id="quiz-home-wrap"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- CALC SECTION -->
+      <div id="calc-section" style="scroll-margin-top:20px;margin-bottom:8px">
+        <div class="section-title">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2" stroke="#5B4FBE" stroke-width="1.5"/><path d="M6 9h6M6 6h3M6 12h4" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/></svg>
+          حاسبة الموزونة
+        </div>
+        <div class="calc-card">
+          <div class="calc-field">
+            <div class="calc-label-row"><span class="calc-label">اختبار القدرات</span><span class="calc-val" id="v-q">0</span></div>
+            <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-q" oninput="calcScore()">
+            <div class="slider-ends"><span>0</span><span>100</span></div>
+          </div>
+          <div class="calc-field">
+            <div class="calc-label-row"><span class="calc-label">اختبار التحصيلي</span><span class="calc-val" id="v-t">0</span></div>
+            <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-t" oninput="calcScore()">
+            <div class="slider-ends"><span>0</span><span>100</span></div>
+          </div>
+          <div id="thanawi-field">
+            <div class="calc-label-row"><span class="calc-label">نسبة الثانوية <span style="font-size:11px;color:var(--muted)">(تُدرجها الإدارة)</span></span><span id="v-s" style="font-size:13px;color:var(--muted)">—</span></div>
+            <div id="thanawi-info" style="padding:11px;background:var(--bg);border-radius:9px;font-size:13px;color:var(--muted);text-align:center">لم تُدرج نسبتك بعد</div>
+          </div>
+        </div>
+        <div class="result-box">
+          <div class="result-score" id="calc-score">—</div>
+          <div class="result-label">موزونتك التقديرية</div>
+          <div class="result-tier" id="calc-tier">أدخلي درجات القدرات والتحصيلي</div>
+        </div>
+        <div class="section-title">جامعات تناسبك</div>
+        <div class="uni-grid" id="uni-cards"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- MAJORS SECTION -->
+      <div id="majors-section" style="scroll-margin-top:20px;margin-bottom:8px">
+        <div class="section-title">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 14V5a2 2 0 012-2h8a2 2 0 012 2v9" stroke="#5B4FBE" stroke-width="1.5"/><path d="M3 14h12M7 7h4M7 10h2" stroke="#5B4FBE" stroke-width="1.5" stroke-linecap="round"/></svg>
+          التخصصات
+        </div>
+        <div class="major-filter-row" id="major-filters"></div>
+        <div id="majors-list"></div>
+      </div>
+
     </div>
 
     <!-- PROFILE -->
