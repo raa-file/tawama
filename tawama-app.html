@@ -876,9 +876,42 @@ const MSG_DATA = [
    msgs:[{f:'them',t:'راجعي الفصل الثالث والرابع للاختبار القادم',time:'منذ يومين'}]},
 ];
 
+// ══════════════════════ SUPABASE ══════════════════════
+const SUPA_URL = 'https://pnqceskbldkhldcqccgt.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucWNlc2tibGRraGxkY3FjY2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MjMwNjYsImV4cCI6MjA5NjA5OTA2Nn0.btaxSiadGfbiCx56UwWNSrTkUskdzNzyO8r-DHpDpdw';
+const DB_HEADERS = {
+  'apikey': SUPA_KEY,
+  'Authorization': 'Bearer ' + SUPA_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'resolution=merge-duplicates'
+};
+
+async function dbGet(phone){
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/students?phone=eq.${encodeURIComponent(phone)}&select=*`, {headers: DB_HEADERS});
+    const d = await r.json();
+    return d[0] || null;
+  } catch(e){ return null; }
+}
+
+async function dbUpsert(data){
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/students`, {
+      method: 'POST', headers: DB_HEADERS, body: JSON.stringify(data)
+    });
+  } catch(e){ toast('خطأ في الحفظ، تحققي من الاتصال'); }
+}
+
+async function dbAll(){
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/students?select=*&order=created_at.desc`, {headers: DB_HEADERS});
+    return await r.json();
+  } catch(e){ return []; }
+}
+
 // ══════════════════════ STATE ══════════════════════
 let user = {name:'',phone:'',grade:'',qudra:null,tahsili:null,thanawi:null,personality:null,quizDone:false,examType:null,examDate:null};
-let students = JSON.parse(localStorage.getItem('tawama_students') || '[]');
+let students = [];
 let quizAnswers = [];
 let currentQ = 0;
 let selectedGrade = '';
@@ -918,19 +951,30 @@ function checkReg(){
   const p=document.getElementById('reg-phone').value.trim();
   document.getElementById('reg-btn').disabled=!(n&&p.length>=10&&selectedGrade);
 }
-function register(){
-  user.name=document.getElementById('reg-name').value.trim();
-  user.phone=document.getElementById('reg-phone').value.trim();
-  user.grade=selectedGrade;
-  // check if already exists
-  let existing=students.find(s=>s.phone===user.phone);
-  if(!existing){
-    const newS={id:Date.now(),name:user.name,phone:user.phone,grade:user.grade,qudra:null,tahsili:null,thanawi:null,examType:null,examDate:null};
-    students.push(newS);
-    localStorage.setItem('tawama_students',JSON.stringify(students));
+
+async function register(){
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.textContent = 'جاري التسجيل...';
+
+  user.name  = document.getElementById('reg-name').value.trim();
+  user.phone = document.getElementById('reg-phone').value.trim();
+  user.grade = selectedGrade;
+
+  let existing = await dbGet(user.phone);
+  if(existing){
+    user.qudra     = existing.qudra;
+    user.tahsili   = existing.tahsili;
+    user.thanawi   = existing.thanawi;
+    user.examType  = existing.exam_type  || null;
+    user.examDate  = existing.exam_date  || null;
+    user.personality = existing.personality || null;
   } else {
-    user.qudra=existing.qudra; user.tahsili=existing.tahsili; user.thanawi=existing.thanawi;
-    user.examType=existing.examType||null; user.examDate=existing.examDate||null;
+    await dbUpsert({
+      name: user.name, phone: user.phone, grade: user.grade,
+      qudra: null, tahsili: null, thanawi: null,
+      exam_type: null, exam_date: null, personality: null
+    });
   }
   launchApp();
 }
@@ -1053,6 +1097,8 @@ function showResult(){
   const top=Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0];
   const r=PERSONALITY_TYPES[top];
   user.personality=r.type; user.quizDone=true;
+  // save personality to DB
+  if(user.phone) dbUpsert({phone: user.phone, personality: r.type});
   document.getElementById('res-icon-wrap').innerHTML=r.icon;
   document.getElementById('res-type').textContent=r.type;
   document.getElementById('res-desc').textContent=r.desc;
@@ -1303,61 +1349,71 @@ function adminLogout(){
   document.getElementById('s-admin').classList.remove('active');
   goTo('s-splash');
 }
-function renderAdminStudents(filter){
-  students=JSON.parse(localStorage.getItem('tawama_students')||'[]');
-  const list=filter?students.filter(s=>s.name.includes(filter)||s.phone.includes(filter)):students;
+async function renderAdminStudents(filter){
+  document.getElementById('admin-students-list').innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">جاري التحميل...</div>`;
+  students = await dbAll();
+  const list = filter
+    ? students.filter(s=>s.name?.includes(filter)||s.phone?.includes(filter))
+    : students;
   document.getElementById('admin-total').textContent=students.length;
   const complete=students.filter(s=>s.thanawi!=null).length;
   document.getElementById('admin-complete').textContent=complete+'/'+students.length;
   const colors=['#5B4FBE','#E8637A','#0EA5A0','#C97B2A','#1E9E6B','#D63860'];
-  if(list.length===0){
+  if(!list.length){
     document.getElementById('admin-students-list').innerHTML=`<div class="empty-state"><div class="empty-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="6" stroke="#9090A8" stroke-width="1.8"/><path d="M5 28c0-6.1 4.9-11 11-11s11 4.9 11 11" stroke="#9090A8" stroke-width="1.8" stroke-linecap="round"/></svg></div><p>لا يوجد طلاب مسجلون بعد</p></div>`;
     return;
   }
   document.getElementById('admin-students-list').innerHTML=list.map((s,i)=>`
     <div class="student-admin-card">
       <div class="student-card-header">
-        <div class="student-av" style="background:${colors[i%colors.length]}">${s.name[0]}</div>
+        <div class="student-av" style="background:${colors[i%colors.length]}">${s.name?.[0]||'؟'}</div>
         <div class="student-card-info">
-          <div class="name">${s.name}</div>
-          <div class="meta">${s.grade} • ${s.phone}${s.examDate?' • '+s.examType+' '+formatAdminDate(s.examDate):''}</div>
+          <div class="name">${s.name||'—'}</div>
+          <div class="meta">${s.grade||'—'} · ${s.phone||'—'}${s.exam_date?' · '+(s.exam_type||'')+' '+formatAdminDate(s.exam_date):''}</div>
         </div>
         ${s.thanawi!=null?`<span class="badge badge-green">مكتمل</span>`:`<span class="badge badge-amber">ناقص</span>`}
       </div>
       <div class="score-input-row">
-        <div class="score-inp-wrap"><div class="label">القدرات %</div><input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.qudra??''}" id="q-${s.id}" oninput="calcStudentWazn('${s.id}')"></div>
-        <div class="score-inp-wrap"><div class="label">التحصيلي %</div><input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.tahsili??''}" id="t-${s.id}" oninput="calcStudentWazn('${s.id}')"></div>
-        <div class="score-inp-wrap"><div class="label">الثانوية %</div><input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.thanawi??''}" id="s-${s.id}" oninput="calcStudentWazn('${s.id}')"></div>
+        <div class="score-inp-wrap"><div class="label">القدرات %</div>
+          <input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.qudra??''}" id="q-${s.phone}" oninput="calcStudentWazn('${s.phone}')"></div>
+        <div class="score-inp-wrap"><div class="label">التحصيلي %</div>
+          <input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.tahsili??''}" id="t-${s.phone}" oninput="calcStudentWazn('${s.phone}')"></div>
+        <div class="score-inp-wrap"><div class="label">الثانوية %</div>
+          <input class="score-inp" type="number" min="0" max="100" placeholder="—" value="${s.thanawi??''}" id="s-${s.phone}" oninput="calcStudentWazn('${s.phone}')"></div>
       </div>
-      <div class="wazn-result" id="wr-${s.id}">
-        <div class="wazn-val" id="wv-${s.id}"></div>
+      <div class="wazn-result" id="wr-${s.phone}">
+        <div class="wazn-val" id="wv-${s.phone}"></div>
         <div class="wazn-label">الموزونة التقديرية</div>
       </div>
-      <button class="save-scores-btn" onclick="saveStudent('${s.id}')">حفظ البيانات</button>
+      <button class="save-scores-btn" onclick="saveStudent('${s.phone}')">حفظ البيانات</button>
     </div>`).join('');
 }
-function calcStudentWazn(id){
-  const q=+document.getElementById(`q-${id}`).value||0;
-  const t=+document.getElementById(`t-${id}`).value||0;
-  const s=+document.getElementById(`s-${id}`).value||0;
+
+function calcStudentWazn(phone){
+  const q=+document.getElementById(`q-${phone}`)?.value||0;
+  const t=+document.getElementById(`t-${phone}`)?.value||0;
+  const s=+document.getElementById(`s-${phone}`)?.value||0;
   if(q&&t&&s){
     const w=((s*0.3)+(q*0.3)+(t*0.4)).toFixed(1);
-    document.getElementById(`wr-${id}`).style.display='block';
-    document.getElementById(`wv-${id}`).textContent=w+'%';
+    const wr=document.getElementById(`wr-${phone}`);
+    const wv=document.getElementById(`wv-${phone}`);
+    if(wr) wr.style.display='block';
+    if(wv) wv.textContent=w+'%';
   }
 }
-function saveStudent(id){
-  const q=+document.getElementById(`q-${id}`).value||null;
-  const t=+document.getElementById(`t-${id}`).value||null;
-  const s=+document.getElementById(`s-${id}`).value||null;
-  const idx=students.findIndex(st=>st.id==id);
-  if(idx>-1){
-    students[idx].qudra=q; students[idx].tahsili=t; students[idx].thanawi=s;
-    localStorage.setItem('tawama_students',JSON.stringify(students));
-    toast('تم حفظ بيانات الطالب ✓');
-    renderAdminStudents();
-  }
+
+async function saveStudent(phone){
+  const q=+document.getElementById(`q-${phone}`)?.value||null;
+  const t=+document.getElementById(`t-${phone}`)?.value||null;
+  const s=+document.getElementById(`s-${phone}`)?.value||null;
+  const btn = event.target;
+  btn.textContent='جاري الحفظ...'; btn.disabled=true;
+  await dbUpsert({phone, qudra:q, tahsili:t, thanawi:s});
+  btn.textContent='تم الحفظ ✓'; btn.style.background='var(--green)';
+  setTimeout(()=>{btn.textContent='حفظ البيانات';btn.style.background='';btn.disabled=false;},2000);
+  toast('تم حفظ بيانات الطالبة ✓');
 }
+
 function filterStudents(v){renderAdminStudents(v)}
 
 // ══════════════════════ EXAM SETUP ══════════════════════
@@ -1533,25 +1589,18 @@ function checkSaveExam(){
   if(btn) btn.disabled = !(selectedExamType && selectedExamDate);
 }
 
-function saveExam(){
+async function saveExam(){
   user.examType = selectedExamType;
   user.examDate = selectedExamDate;
-  // persist to students
-  const idx = students.findIndex(s=>s.phone===user.phone);
-  if(idx>-1){
-    students[idx].examType = selectedExamType;
-    students[idx].examDate = selectedExamDate;
-    localStorage.setItem('tawama_students',JSON.stringify(students));
-  }
+  await dbUpsert({phone: user.phone, exam_type: selectedExamType, exam_date: selectedExamDate});
   renderExamCard();
   buildNotifs();
   toast('تم حفظ موعد الاختبار ✓');
 }
 
-function resetExamSetup(){
+async function resetExamSetup(){
   user.examType=null; user.examDate=null;
-  const idx=students.findIndex(s=>s.phone===user.phone);
-  if(idx>-1){students[idx].examType=null;students[idx].examDate=null;localStorage.setItem('tawama_students',JSON.stringify(students));}
+  await dbUpsert({phone: user.phone, exam_type: null, exam_date: null});
   renderExamCard();
 }
 
