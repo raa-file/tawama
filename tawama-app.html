@@ -298,8 +298,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
 .contact-modal-btns{display:flex;gap:10px;margin-top:14px}
 .btn-cancel-modal{flex:1;padding:12px;border-radius:11px;background:var(--bg);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer}
 .btn-send-modal{flex:2;padding:12px;border-radius:11px;background:var(--primary);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer}
-.page-topbar{display:flex;align-items:center;gap:14px;margin:-20px -20px 20px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:40}
-.page-topbar-title{font-size:17px;font-weight:800}
+.page-topbar{display:none}
 .page-back-btn{width:36px;height:36px;background:var(--primary-soft);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
 .empty-icon{width:60px;height:60px;border-radius:16px;background:var(--bg);margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
@@ -395,8 +394,14 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
 <!-- APP -->
 <div id="s-app">
   <div class="app-header">
-    <div class="header-logo">التوأمة الرقمية</div>
-    <button class="icon-btn" onclick="openNotif()">
+    <div class="header-logo" id="header-logo">التوأمة الرقمية</div>
+    <div id="header-back-btn" style="display:none">
+      <button class="page-back-btn" onclick="navTo('p-home',document.getElementById('nav-home'))">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="#5B4FBE" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div id="header-page-title" style="display:none;font-size:16px;font-weight:800;flex:1;text-align:center;margin-left:38px"></div>
+    <button class="icon-btn" id="header-notif-btn" onclick="openNotif()">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 00-6 6v3l-1.5 2.5h15L16 11V8a6 6 0 00-6-6z" stroke="#5B4FBE" stroke-width="1.6"/><path d="M8 16.5a2 2 0 004 0" stroke="#5B4FBE" stroke-width="1.6" stroke-linecap="round"/></svg>
       <div class="notif-dot" id="notif-dot"></div>
     </button>
@@ -679,11 +684,20 @@ let calYear, calMonth, selExamType='', selExamDate='';
 
 // ══════ NAV ══════
 function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+const PAGE_TITLES = {'p-quiz':'اختبار الميول','p-calc':'حاسبة الموزونة','p-majors':'التخصصات','p-profile':'حسابي'};
+
 function navTo(pageId,tabEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   if(tabEl) tabEl.classList.add('active');
+  // update header
+  const isHome = pageId==='p-home';
+  document.getElementById('header-logo').style.display = isHome?'block':'none';
+  document.getElementById('header-back-btn').style.display = isHome?'none':'block';
+  document.getElementById('header-page-title').style.display = isHome?'none':'block';
+  document.getElementById('header-page-title').textContent = PAGE_TITLES[pageId]||'';
+  document.getElementById('header-notif-btn').style.display = isHome?'flex':'none';
   if(pageId==='p-profile') renderProfile();
   if(pageId==='p-quiz') renderQuizSection();
   if(pageId==='p-majors') renderMajors();
