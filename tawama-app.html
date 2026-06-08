@@ -10,26 +10,48 @@
 <meta name="apple-mobile-web-app-title" content="التوأمة الرقمية">
 <meta name="theme-color" content="#5B4FBE">
 <link rel="manifest" id="manifest-link">
+<link rel="apple-touch-icon" id="apple-icon">
 <script>
-// Generate manifest dynamically
-const manifest = {
-  name: "منصة التوأمة الرقمية",
-  short_name: "التوأمة",
-  description: "رفيقتك الأكاديمية من الثانوي حتى الجامعة",
-  start_url: "./",
-  display: "standalone",
-  background_color: "#5B4FBE",
-  theme_color: "#5B4FBE",
-  dir: "rtl",
-  lang: "ar",
-  orientation: "portrait",
-  icons: [
-    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23E8637A'/%3E%3Cstop offset='1' stop-color='%235B4FBE'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='110' fill='url(%23g)'/%3E%3C!-- arrow up --%3E%3Cline x1='256' y1='320' x2='256' y2='140' stroke='white' stroke-width='28' stroke-linecap='round'/%3E%3Cpolyline points='210,186 256,140 302,186' fill='none' stroke='white' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3C!-- arrow left --%3E%3Cpath d='M256 360 Q200 360 150 390' fill='none' stroke='white' stroke-width='28' stroke-linecap='round'/%3E%3Cpolyline points='104,370 150,390 130,438' fill='none' stroke='white' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3C!-- arrow right --%3E%3Cpath d='M256 360 Q310 360 362 390' fill='none' stroke='white' stroke-width='28' stroke-linecap='round'/%3E%3Cpolyline points='408,370 362,390 382,438' fill='none' stroke='white' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
-  ]
-};
-const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-const url = URL.createObjectURL(blob);
-document.getElementById('manifest-link').href = url;
+function makeIcon(){
+  const s=512,cv=document.createElement('canvas');
+  cv.width=cv.height=s;const ctx=cv.getContext('2d');
+  const gr=ctx.createLinearGradient(0,0,s,s);
+  gr.addColorStop(0,'#E8637A');gr.addColorStop(1,'#5B4FBE');
+  const r=110;
+  ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(s-r,0);
+  ctx.quadraticCurveTo(s,0,s,r);ctx.lineTo(s,s-r);
+  ctx.quadraticCurveTo(s,s,s-r,s);ctx.lineTo(r,s);
+  ctx.quadraticCurveTo(0,s,0,s-r);ctx.lineTo(0,r);
+  ctx.quadraticCurveTo(0,0,r,0);ctx.fillStyle=gr;ctx.fill();
+  ctx.lineCap='round';ctx.lineJoin='round';
+  // UP arrow
+  ctx.strokeStyle='#fff';ctx.lineWidth=28;
+  ctx.beginPath();ctx.moveTo(256,345);ctx.lineTo(256,125);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(208,173);ctx.lineTo(256,123);ctx.lineTo(304,173);ctx.stroke();
+  // LEFT curved arrow - starts bottom center curves to left
+  ctx.strokeStyle='rgba(255,255,255,0.88)';ctx.lineWidth=25;
+  ctx.beginPath();ctx.moveTo(245,358);
+  ctx.bezierCurveTo(215,395,155,418,108,396);
+  ctx.bezierCurveTo(84,383,74,364,72,348);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(88,330);ctx.lineTo(72,348);ctx.lineTo(92,360);ctx.stroke();
+  // RIGHT curved arrow
+  ctx.beginPath();ctx.moveTo(267,358);
+  ctx.bezierCurveTo(297,395,357,418,404,396);
+  ctx.bezierCurveTo(428,383,438,364,440,348);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(424,330);ctx.lineTo(440,348);ctx.lineTo(420,360);ctx.stroke();
+  return cv.toDataURL('image/png');
+}
+window.addEventListener('load',function(){
+  const ico=makeIcon();
+  document.getElementById('apple-icon').href=ico;
+  const m={name:"منصة التوأمة الرقمية",short_name:"التوأمة",
+    start_url:"./",display:"standalone",
+    background_color:"#5B4FBE",theme_color:"#5B4FBE",
+    dir:"rtl",lang:"ar",orientation:"portrait",
+    icons:[{src:ico,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+  const b=new Blob([JSON.stringify(m)],{type:'application/json'});
+  document.getElementById('manifest-link').href=URL.createObjectURL(b);
+});
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -460,7 +482,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
         <div class="hero-grade" id="dash-grade"></div>
         <div class="hero-score-row">
           <div class="hero-score-box"><div class="hero-score-val" id="h-qudra">—</div><div class="hero-score-label">القدرات</div></div>
-          <div class="hero-score-box"><div class="hero-score-val" id="h-tahsili">—</div><div class="hero-score-label">التحصيلي</div></div>
           <div class="hero-score-box"><div class="hero-score-val" id="h-thanawi">—</div><div class="hero-score-label">الثانوية</div></div>
           <div class="hero-score-box"><div class="hero-score-val" id="h-wazn">—</div><div class="hero-score-label">الموزونة</div></div>
         </div>
@@ -536,11 +557,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
           <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-q" oninput="calcScore()">
           <div class="slider-ends"><span>0</span><span>100</span></div>
         </div>
-        <div class="calc-field">
-          <div class="calc-label-row"><span class="calc-label">اختبار التحصيلي</span><span class="calc-val" id="v-t">0</span></div>
-          <input type="range" class="calc-slider" min="0" max="100" value="0" id="sl-t" oninput="calcScore()">
-          <div class="slider-ends"><span>0</span><span>100</span></div>
-        </div>
         <div id="thanawi-field">
           <div class="calc-label-row"><span class="calc-label">نسبة الثانوية <span style="font-size:11px;color:var(--muted)">(تُدرجها الإدارة)</span></span><span id="v-s" style="font-size:13px;color:var(--muted)">—</span></div>
           <div id="thanawi-info" style="padding:11px;background:var(--bg);border-radius:9px;font-size:13px;color:var(--muted);text-align:center">لم تُدرج نسبتك بعد</div>
@@ -576,7 +592,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--ink);min-he
       </div>
       <div class="prof-stat-row">
         <div class="p-stat"><div class="p-stat-val" id="p-q">—</div><div class="p-stat-label">القدرات</div></div>
-        <div class="p-stat"><div class="p-stat-val" id="p-t">—</div><div class="p-stat-label">التحصيلي</div></div>
         <div class="p-stat"><div class="p-stat-val" id="p-s">—</div><div class="p-stat-label">الثانوية</div></div>
       </div>
       <div class="profile-section">
@@ -866,14 +881,13 @@ async function refreshUserData(){
 
 function updateHeroScores(){
   document.getElementById('h-qudra').textContent=user.qudra!=null?user.qudra+'%':'—';
-  document.getElementById('h-tahsili').textContent=user.tahsili!=null?user.tahsili+'%':'—';
   document.getElementById('h-thanawi').textContent=user.thanawi!=null?user.thanawi+'%':'—';
   const w=calcWazn();
   document.getElementById('h-wazn').textContent=w?w+'%':'—';
 }
 function calcWazn(){
-  if(user.qudra==null||user.tahsili==null||user.thanawi==null)return null;
-  return((user.thanawi*.3)+(user.qudra*.3)+(user.tahsili*.4)).toFixed(1);
+  if(user.qudra==null||user.thanawi==null)return null;
+  return((user.thanawi*0.5)+(user.qudra*0.5)).toFixed(1);
 }
 function initCalcField(){
   if(user.thanawi!=null){
@@ -882,16 +896,13 @@ function initCalcField(){
     document.getElementById('v-s').style.color='var(--primary)';
   }
   if(user.qudra!=null){document.getElementById('sl-q').value=user.qudra;document.getElementById('v-q').textContent=user.qudra;}
-  if(user.tahsili!=null){document.getElementById('sl-t').value=user.tahsili;document.getElementById('v-t').textContent=user.tahsili;}
 }
 function calcScore(){
   const q=+document.getElementById('sl-q').value;
-  const t=+document.getElementById('sl-t').value;
   document.getElementById('v-q').textContent=q+'%';
-  document.getElementById('v-t').textContent=t+'%';
   const s=user.thanawi;
   if(s==null){document.getElementById('calc-score').textContent='—';document.getElementById('calc-tier').textContent='نسبة الثانوية لم تُدرج بعد';document.getElementById('uni-cards').innerHTML='';return;}
-  const score=((s*.3)+(q*.3)+(t*.4)).toFixed(1);
+  const score=((s*0.5)+(q*0.5)).toFixed(1);
   document.getElementById('calc-score').textContent=score+'%';
   const sn=parseFloat(score);
   let tier=sn>=93?'ممتازة — الطب والتخصصات الأعلى متاحة':sn>=88?'ممتازة — خيارات صحية وتقنية':sn>=80?'جيدة جداً — خيارات واسعة':sn>=70?'جيدة — طوّري درجاتك':'تحتاجين مزيداً من الجهد';
@@ -1180,7 +1191,6 @@ function renderProfile(){
   document.getElementById('prof-name').textContent=user.name||'—';
   document.getElementById('prof-grade').textContent=user.grade||'—';
   document.getElementById('p-q').textContent=user.qudra!=null?user.qudra+'%':'—';
-  document.getElementById('p-t').textContent=user.tahsili!=null?user.tahsili+'%':'—';
   document.getElementById('p-s').textContent=user.thanawi!=null?user.thanawi+'%':'—';
   if(user.personality){
     document.getElementById('prof-type').textContent=user.personality;
@@ -1250,8 +1260,8 @@ async function renderAdminStudents(filter){
       <!-- نتيجة اختبار الميول -->
       ${persBlock(s.personality)}
       <!-- الموزونة التقديرية -->
-      <div class="wazn-result" id="wr-${s.phone}" style="${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?'display:block':'display:none'}">
-        <div class="wazn-val" id="wv-${s.phone}">${s.qudra!=null&&s.tahsili!=null&&s.thanawi!=null?((s.thanawi*.3+s.qudra*.3+s.tahsili*.4).toFixed(1))+'%':''}</div>
+      <div class="wazn-result" id="wr-${s.phone}" style="${s.qudra!=null&&s.thanawi!=null?'display:block':'display:none'}">
+        <div class="wazn-val" id="wv-${s.phone}">${s.qudra!=null&&s.thanawi!=null?((s.thanawi*0.5+s.qudra*0.5).toFixed(1))+'%':''}</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">الموزونة التقديرية</div>
       </div>
     </div>`).join('');
@@ -1260,16 +1270,16 @@ function calcW(ph){
   const s=+document.getElementById(`s-${ph}`)?.value||0;
   // find student qudra/tahsili from loaded students array
   const st=students.find(x=>x.phone===ph);
-  const q=st?.qudra||0, t=st?.tahsili||0;
+  const q=st?.qudra||0;
   const wr=document.getElementById(`wr-${ph}`);
   const wv=document.getElementById(`wv-${ph}`);
-  if(s&&q&&t){
-    const w=((s*.3)+(q*.3)+(t*.4)).toFixed(1);
+  if(s&&q){
+    const w=((s*0.5)+(q*0.5)).toFixed(1);
     if(wr)wr.style.display='block';
     if(wv)wv.textContent=w+'%';
-  } else if(s&&(!q||!t)){
+  } else if(s&&!q){
     if(wr)wr.style.display='block';
-    if(wv)wv.textContent='أدخلت الثانوية لكن القدرات/التحصيلي غير مسجّلين للطالبة بعد';
+    if(wv)wv.textContent='القدرات غير مسجّلة بعد';
     if(wv)wv.style.fontSize='11px';
   }
 }
@@ -1372,7 +1382,6 @@ async function initSession(){
     if(String(fresh.thanawi)!==String(user.thanawi)){user.thanawi=fresh.thanawi;changed=true;}
     if((fresh.personality||null)!==(user.personality)){user.personality=fresh.personality||null;user.quizDone=!!fresh.personality;changed=true;}
     if(String(fresh.qudra)!==String(user.qudra)){user.qudra=fresh.qudra;changed=true;}
-    if(String(fresh.tahsili)!==String(user.tahsili)){user.tahsili=fresh.tahsili;changed=true;}
     if((fresh.exam_type||null)!==user.examType){user.examType=fresh.exam_type||null;user.examDate=fresh.exam_date||null;changed=true;}
     if(changed){
       updateHeroScores();buildAlerts();
