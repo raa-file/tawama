@@ -15,30 +15,26 @@
 function makeIcon(){
   const s=512,cv=document.createElement('canvas');
   cv.width=cv.height=s;const ctx=cv.getContext('2d');
+  // gradient
   const gr=ctx.createLinearGradient(0,0,s,s);
   gr.addColorStop(0,'#E8637A');gr.addColorStop(1,'#5B4FBE');
-  const r=110;
-  ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(s-r,0);
-  ctx.quadraticCurveTo(s,0,s,r);ctx.lineTo(s,s-r);
-  ctx.quadraticCurveTo(s,s,s-r,s);ctx.lineTo(r,s);
-  ctx.quadraticCurveTo(0,s,0,s-r);ctx.lineTo(0,r);
-  ctx.quadraticCurveTo(0,0,r,0);ctx.fillStyle=gr;ctx.fill();
-  ctx.lineCap='round';ctx.lineJoin='round';
-  // UP arrow
-  ctx.strokeStyle='#fff';ctx.lineWidth=28;
-  ctx.beginPath();ctx.moveTo(256,345);ctx.lineTo(256,125);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(208,173);ctx.lineTo(256,123);ctx.lineTo(304,173);ctx.stroke();
-  // LEFT curved arrow - starts bottom center curves to left
-  ctx.strokeStyle='rgba(255,255,255,0.88)';ctx.lineWidth=25;
-  ctx.beginPath();ctx.moveTo(245,358);
-  ctx.bezierCurveTo(215,395,155,418,108,396);
-  ctx.bezierCurveTo(84,383,74,364,72,348);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(88,330);ctx.lineTo(72,348);ctx.lineTo(92,360);ctx.stroke();
-  // RIGHT curved arrow
-  ctx.beginPath();ctx.moveTo(267,358);
-  ctx.bezierCurveTo(297,395,357,418,404,396);
-  ctx.bezierCurveTo(428,383,438,364,440,348);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(424,330);ctx.lineTo(440,348);ctx.lineTo(420,360);ctx.stroke();
+  // chat bubble path
+  ctx.beginPath();
+  ctx.moveTo(80,60);
+  ctx.bezierCurveTo(80,20,432,20,432,60);
+  ctx.bezierCurveTo(432,200,432,280,432,320);
+  ctx.bezierCurveTo(432,370,370,400,310,400);
+  ctx.bezierCurveTo(280,400,250,400,220,400);
+  ctx.bezierCurveTo(185,400,140,440,110,470);
+  ctx.bezierCurveTo(105,480,90,475,92,462);
+  ctx.bezierCurveTo(96,440,104,415,100,400);
+  ctx.bezierCurveTo(80,395,80,370,80,320);
+  ctx.closePath();
+  ctx.fillStyle=gr;ctx.fill();
+  // UP arrow - white
+  ctx.strokeStyle='#fff';ctx.lineWidth=38;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(256,340);ctx.lineTo(256,155);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(170,242);ctx.lineTo(256,155);ctx.lineTo(342,242);ctx.stroke();
   return cv.toDataURL('image/png');
 }
 window.addEventListener('load',function(){
