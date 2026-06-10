@@ -999,7 +999,7 @@ function buildCal(){
   const total=new Date(calYear,calMonth+1,0).getDate();
   for(let d=1;d<=total;d++){
     const dt=new Date(calYear,calMonth,d);
-    const past=dt<today;
+    const past=false; // allow past dates
     const ds=dt.toISOString().split('T')[0];
     const sel=ds===selExamDate;
     const isToday=dt.getTime()===today.getTime();
